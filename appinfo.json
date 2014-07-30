@@ -1,0 +1,17 @@
+{
+  "uuid": "116c98b1-ba0d-4b88-8588-18579c658090",
+  "shortName": "Dayna",
+  "longName": "Dayna",
+  "companyName": "Sean Kelly",
+  "versionCode": 1,
+  "versionLabel": "1.0.0",
+  "watchapp": {
+    "watchface": true
+  },
+  "appKeys": {
+    "dummy": 0
+  },
+  "resources": {
+    "media": []
+  }
+}
