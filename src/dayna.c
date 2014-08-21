@@ -1,9 +1,12 @@
 #include "pebble.h"
 
+#include "autoconfig.h"
+
 static Window *window;
 static Layer *hours_layer;
 static Layer *minutes_layer;
 static Layer *seconds_layer;
+static InverterLayer *inverter_layer;
 
 static uint8_t hours    = 0;
 static uint8_t minutes  = 0;
@@ -26,6 +29,14 @@ static const GPathInfo HOURS_PATH_POINTS = {
     {0, 168-15},
   }
 };
+
+static void in_received_handler(DictionaryIterator *iter, void *context) {
+  // Let Pebble Autoconfig handle received settings
+  autoconfig_in_received_handler(iter, context);
+
+  // Update display with new values
+  layer_set_hidden(inverter_layer_get_layer(inverter_layer), !getInverted());
+}
 
 void minutes_layer_update_callback(Layer *layer, GContext* ctx) {
   GRect bounds = layer_get_bounds(layer);
@@ -134,9 +145,14 @@ void handle_deinit(void) {
   layer_destroy(seconds_layer);
   tick_timer_service_unsubscribe();
   bluetooth_connection_service_unsubscribe();
+  autoconfig_deinit();
 }
 
 void handle_init(void) {
+  autoconfig_init();
+
+  app_message_register_inbox_received(in_received_handler);
+
   window = window_create();
   window_stack_push(window, true /* Animated */);
   window_set_background_color(window, GColorBlack);
@@ -160,6 +176,10 @@ void handle_init(void) {
 
   hours_path = gpath_create(&HOURS_PATH_POINTS);
 
+  inverter_layer = inverter_layer_create(layer_get_frame(window_layer));
+  layer_set_hidden(inverter_layer_get_layer(inverter_layer), !getInverted());
+  layer_add_child(window_layer, inverter_layer_get_layer(inverter_layer));
+  
   time_t now;
   time(&now);
   tick_timer_service_subscribe(SECOND_UNIT, handle_seconds_tick);
